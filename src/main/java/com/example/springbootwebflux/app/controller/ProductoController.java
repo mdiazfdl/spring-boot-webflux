@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
 import reactor.core.publisher.Flux;
+
+import java.time.Duration;
 
 @Controller
 public class ProductoController {
@@ -26,6 +29,18 @@ public class ProductoController {
                 });
         productos.subscribe(producto -> log.info(producto.getNombre()));
         model.addAttribute("productos",productos);
+        model.addAttribute("titulo","listado de productos");
+        return "Listar";
+    }
+    @GetMapping("/listar_datadriver")
+    public String listarDataDrive(Model model){
+        Flux<Producto> productos = productoDao.findAll()
+                .map(producto -> {
+                    producto.setNombre(producto.getNombre().toUpperCase());
+                    return producto;
+                }).delayElements(Duration.ofSeconds(1));
+        productos.subscribe(producto -> log.info(producto.getNombre()));
+        model.addAttribute("productos", new ReactiveDataDriverContextVariable(productos,2));
         model.addAttribute("titulo","listado de productos");
         return "Listar";
     }
