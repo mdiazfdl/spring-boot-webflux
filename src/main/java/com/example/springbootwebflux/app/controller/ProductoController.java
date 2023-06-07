@@ -17,7 +17,6 @@ import java.time.Duration;
 public class ProductoController {
     @Autowired
     private ProductoService productoService;
-
     private static final Logger log = LoggerFactory.getLogger(ProductoController.class);
 
     @GetMapping("/listar")
