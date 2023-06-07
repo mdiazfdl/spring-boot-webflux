@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -20,13 +22,27 @@ public class ProductoController {
     private static final Logger log = LoggerFactory.getLogger(ProductoController.class);
 
     @GetMapping("/listar")
-    public String listar(Model model){
+    public Mono<String> listar(Model model){
         Flux<Producto> productos = productoService.findAllConNombreUpperCase();
         productos.subscribe(producto -> log.info(producto.getNombre()));
         model.addAttribute("productos",productos);
         model.addAttribute("titulo","listado de productos");
-        return "Listar";
+        return Mono.just("Listar");
     }
+    @GetMapping("/form")
+    public Mono<String> crear(Model model){
+        model.addAttribute("producto",new Producto());
+        model.addAttribute("titulo","formulario de productos");
+        return Mono.just("Form");
+    }
+    @PostMapping("/form")
+    public Mono<String> guardar(Producto producto){
+        return productoService.save(producto).doOnNext(p -> {
+            log.info("Producto guardado: " + p.getNombre() );
+        })
+                .thenReturn("redirect:/listar");
+    }
+
     @GetMapping("/listar_datadriver")
     public String listarDataDrive(Model model){
         Flux<Producto> productos = productoService.findAllConNombreUpperCase()
