@@ -27,13 +27,13 @@ public class ProductoController {
         productos.subscribe(producto -> log.info(producto.getNombre()));
         model.addAttribute("productos",productos);
         model.addAttribute("titulo","listado de productos");
-        return Mono.just("Listar");
+        return Mono.just("listar");
     }
     @GetMapping("/form")
     public Mono<String> crear(Model model){
         model.addAttribute("producto",new Producto());
         model.addAttribute("titulo","formulario de productos");
-        return Mono.just("Form");
+        return Mono.just("form");
     }
     @PostMapping("/form")
     public Mono<String> guardar(Producto producto){
@@ -50,7 +50,7 @@ public class ProductoController {
         productos.subscribe(producto -> log.info(producto.getNombre()));
         model.addAttribute("productos", new ReactiveDataDriverContextVariable(productos,2));
         model.addAttribute("titulo","listado de productos");
-        return "Listar";
+        return "listar";
     }
 
     @GetMapping("/listar_full")
@@ -59,7 +59,7 @@ public class ProductoController {
         productos.subscribe(producto -> log.info(producto.getNombre()));
         model.addAttribute("productos",productos);
         model.addAttribute("titulo","listado de productos");
-        return "Listar";
+        return "listar";
     }
     @GetMapping("/listar_chunked")
     public String listarChunked(Model model){
@@ -67,6 +67,6 @@ public class ProductoController {
         productos.subscribe(producto -> log.info(producto.getNombre()));
         model.addAttribute("productos",productos);
         model.addAttribute("titulo","listado de productos");
-        return "ListarChunked";
+        return "listarChunked";
     }
 }
