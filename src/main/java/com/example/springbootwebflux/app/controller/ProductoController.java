@@ -49,6 +49,14 @@ public class ProductoController {
         return Mono.just("form");
     }
 
+    @GetMapping("/eliminar/{id}")
+    public Mono<String> Eliminar(@PathVariable String id) {
+        return productoService.findById(id).flatMap(producto ->
+        {
+           return productoService.delete(producto);
+        }).then(Mono.just("redirect:/listar?success=producto+eliminado+con+exito"));
+    }
+
     @PostMapping("/form")
     public Mono<String> guardar(@Valid Producto producto, BindingResult result,Model model) {
         if (result.hasErrors()) {
