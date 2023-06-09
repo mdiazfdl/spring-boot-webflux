@@ -22,11 +22,19 @@ public class Producto {
     @NotNull
     private Double precio;
 
+    @NotNull
+    private Categoria categoria;
+
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date createAt;
 
     public Producto(String nombre, Double precio) {
         this.nombre = nombre;
         this.precio = precio;
+    }
+    public Producto(String nombre, Double precio, Categoria categoria) {
+        this.nombre = nombre;
+        this.precio = precio;
+        this.categoria = categoria;
     }
 }
