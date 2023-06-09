@@ -1,5 +1,7 @@
 package com.example.springbootwebflux.app.models.documents;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -15,8 +17,9 @@ public class Producto {
     @Id
     private String id;
 
+    @NotEmpty
     private String nombre;
-
+    @NotNull
     private Double precio;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
