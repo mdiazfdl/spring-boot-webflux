@@ -9,6 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +23,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Date;
 import java.util.UUID;
@@ -28,12 +35,41 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
-    @Value("$config.uploads.path")
-    private String path;
+    private String path = "C:\\Foto\\";
 
     @Autowired
     private CategoriaService categoriaService;
     private static final Logger log = LoggerFactory.getLogger(ProductoController.class);
+
+    @GetMapping("/uploads/img/{nombreFoto:.+}")
+    public Mono<ResponseEntity<Resource>> verFoto(@PathVariable String nombreFoto) throws MalformedURLException {
+        Path ruta = Paths.get(path).resolve(nombreFoto).toAbsolutePath();
+
+        Resource imagen = new UrlResource(ruta.toUri());
+
+        return Mono.just(
+                ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + imagen.getFilename() + "\"")
+                        .body(imagen)
+        );
+
+    }
+
+    @GetMapping("/ver/{id}")
+    public Mono<String> ver (Model model,@PathVariable String id ){
+        return productoService.findById(id)
+                .doOnNext(producto ->{
+                    model.addAttribute("producto", producto);
+                    model.addAttribute("titulo", "Detalles");
+                }).switchIfEmpty(Mono.just(new Producto()))
+                .flatMap(p ->{
+                    if(p.getId() == null){
+                        return Mono.error(new InterruptedException("no existe el producto"));
+                    }
+                    return Mono.just(p);
+                }).then(Mono.just("ver"))
+                .onErrorResume(ex -> Mono.just("redirect:/list?error=no+existe+el+producto"));
+    }
 
     @GetMapping("/listar")
     public Mono<String> listar(Model model) {
