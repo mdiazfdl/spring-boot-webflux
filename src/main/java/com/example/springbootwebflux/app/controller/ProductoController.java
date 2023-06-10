@@ -8,24 +8,28 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.Date;
+import java.util.UUID;
 
 @Controller
 public class ProductoController {
     @Autowired
     private ProductoService productoService;
+
+    @Value("$config.uploads.path")
+    private String path;
 
     @Autowired
     private CategoriaService categoriaService;
@@ -69,7 +73,7 @@ public class ProductoController {
     }
 
     @PostMapping("/form")
-    public Mono<String> guardar(@Valid Producto producto, BindingResult result, Model model) {
+    public Mono<String> guardar(@Valid Producto producto, BindingResult result, Model model,@RequestPart FilePart file) {
         if (result.hasErrors()) {
             model.addAttribute("boton", "Guardar");
             model.addAttribute("titulo", "errores de producto");
@@ -80,10 +84,23 @@ public class ProductoController {
                         if (producto.getCreateAt() == null) {
                             producto.setCreateAt(new Date());
                         }
+                        if(!file.filename().isEmpty()){
+                            //TODO:UUID.randomUUID().toString() --> Genera un id unico
+                            producto.setFoto(UUID.randomUUID().toString() + "-" + file.filename()
+                                    .replace(" ","")
+                                    .replace(":","")
+                                    .replace("\\",""));
+                        }
                         producto.setCategoria(categoria1);
                         return productoService.save(producto);
                     }).doOnNext(p -> {
                         log.info("Producto guardado: " + p.getNombre());
+                    })
+                    .flatMap(producto1 -> {
+                        if(!file.filename().isEmpty()){
+                            return file.transferTo(new File( path + producto1.getFoto()));
+                        }
+                        return Mono.empty();
                     })
                     .thenReturn("redirect:/listar");
         }
