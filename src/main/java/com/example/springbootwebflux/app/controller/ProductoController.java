@@ -64,21 +64,25 @@ public class ProductoController {
     public Mono<String> Eliminar(@PathVariable String id) {
         return productoService.findById(id).flatMap(producto ->
         {
-           return productoService.delete(producto);
+            return productoService.delete(producto);
         }).then(Mono.just("redirect:/listar?success=producto+eliminado+con+exito"));
     }
 
     @PostMapping("/form")
-    public Mono<String> guardar(@Valid Producto producto, BindingResult result,Model model) {
+    public Mono<String> guardar(@Valid Producto producto, BindingResult result, Model model) {
         if (result.hasErrors()) {
             model.addAttribute("boton", "Guardar");
             model.addAttribute("titulo", "errores de producto");
             return Mono.just("form");
         } else {
-            if(producto.getCreateAt() == null){
-                producto.setCreateAt(new Date());
-            }
-            return productoService.save(producto).doOnNext(p -> {
+            Mono<Categoria> categoria = categoriaService.findById(producto.getCategoria().getId());
+            return categoria.flatMap(categoria1 -> {
+                        if (producto.getCreateAt() == null) {
+                            producto.setCreateAt(new Date());
+                        }
+                        producto.setCategoria(categoria1);
+                        return productoService.save(producto);
+                    }).doOnNext(p -> {
                         log.info("Producto guardado: " + p.getNombre());
                     })
                     .thenReturn("redirect:/listar");

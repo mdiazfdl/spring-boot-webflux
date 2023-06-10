@@ -1,5 +1,6 @@
 package com.example.springbootwebflux.app.models.documents;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -22,7 +23,7 @@ public class Producto {
     @NotNull
     private Double precio;
 
-    @NotNull
+    @Valid
     private Categoria categoria;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
